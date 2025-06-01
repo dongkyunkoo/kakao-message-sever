@@ -1,45 +1,51 @@
-const express = require("express");
-const axios = require("axios");
-require("dotenv").config();
+const express = require('express');
+const axios = require('axios');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+app.post('/send-kakao-message', async (req, res) => {
+  const message = req.body.message;
+  const accessToken = process.env.KAKAO_ACCESS_TOKEN;
 
-app.post("/send-kakao-message", async (req, res) => {
-  const { message } = req.body;
+  if (!message || !accessToken) {
+    return res.status(400).json({ error: 'Missing message or token' });
+  }
+
+  const payload = {
+    object_type: 'text',
+    text: message,
+    link: {
+      web_url: 'https://developers.kakao.com',
+      mobile_web_url: 'https://developers.kakao.com'
+    },
+    button_title: '확인'
+  };
 
   try {
-    const result = await axios.post(
-      "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+    await axios.post(
+      'https://kapi.kakao.com/v2/api/talk/memo/default/send',
       new URLSearchParams({
-        template_object: JSON.stringify({
-          object_type: "text",
-          text: message,
-          link: {
-            web_url: "https://example.com",
-            mobile_web_url: "https://example.com"
-          },
-          button_title: "확인"
-        })
+        template_object: JSON.stringify(payload)
       }),
       {
         headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
-          "Content-Type": "application/x-www-form-urlencoded"
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
         }
       }
     );
 
-    res.status(200).json({ success: true });
+    console.log('✅ 메시지 전송 성공:', message);
+    res.json({ success: true });
   } catch (error) {
-    console.error("카카오 메시지 전송 실패:", error.response?.data || error.message);
-    res.status(500).json({ error: "카카오 메시지 전송 실패" });
+    console.error('❌ 메시지 전송 실패:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Message sending failed' });
   }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 서버 실행 중 (포트 ${PORT})`);
 });
