@@ -5,6 +5,11 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
+// ✅ 헬스 체크용 루트 라우트
+app.get('/', (req, res) => {
+  res.send('✅ 서버 살아있고 응답 중입니다');
+});
+
 app.post('/send-kakao-message', async (req, res) => {
   const message = req.body.message;
   const accessToken = process.env.KAKAO_ACCESS_TOKEN;
@@ -45,9 +50,8 @@ app.post('/send-kakao-message', async (req, res) => {
   }
 });
 
+// ✅ 서버 시작
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 서버 실행 중 (포트 ${PORT})`);
-  app.get('/', (req, res) => {
-  res.send('✅ 서버 살아있고 응답 중입니다');
 });
